@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { AnimatedNumber } from './AnimatedNumber';
 
 interface Transaction {
   id: string;
@@ -57,25 +59,84 @@ export function MoneyHub({ onSuccess }: MoneyHubProps) {
     onSuccess(`Added ${type}: $${newTx.amount}`);
   };
 
+  const summaryVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.05,
+      },
+    },
+  };
+
+  const summaryCardVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.4, ease: 'easeOut' },
+    },
+  };
+
+  const transactionVariants = {
+    hidden: { opacity: 0, y: 15 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        staggerChildren: 0.08,
+        delayChildren: 0.05,
+      },
+    },
+  };
+
+  const transactionItemVariants = {
+    hidden: { opacity: 0, y: 15 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.3, ease: 'easeOut' },
+    },
+  };
+
   return (
     <div className="space-y-6">
       {/* Dynamic Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-5 bg-slate-900/80 border border-slate-800 rounded-2xl">
+      <motion.div
+        className="grid grid-cols-1 md:grid-cols-3 gap-4"
+        variants={summaryVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div
+          variants={summaryCardVariants}
+          whileHover={{ y: -2, scale: 1.01 }}
+          className="p-5 bg-slate-900/80 border border-slate-800 rounded-2xl cursor-pointer transition-all"
+        >
           <p className="text-sm text-slate-400 font-medium">Total Income</p>
-          <p className="text-3xl font-extrabold text-emerald-400 mt-1">${totalIncome.toLocaleString()}</p>
-        </div>
-        <div className="p-5 bg-slate-900/80 border border-slate-800 rounded-2xl">
+          <p className="text-3xl font-extrabold text-emerald-400 mt-1">$<AnimatedNumber value={totalIncome} /></p>
+        </motion.div>
+        <motion.div
+          variants={summaryCardVariants}
+          whileHover={{ y: -2, scale: 1.01 }}
+          className="p-5 bg-slate-900/80 border border-slate-800 rounded-2xl cursor-pointer transition-all"
+        >
           <p className="text-sm text-slate-400 font-medium">Total Expenses</p>
-          <p className="text-3xl font-extrabold text-rose-400 mt-1">${totalExpenses.toLocaleString()}</p>
-        </div>
-        <div className="p-5 bg-slate-900/80 border border-slate-800 rounded-2xl">
+          <p className="text-3xl font-extrabold text-rose-400 mt-1">$<AnimatedNumber value={totalExpenses} /></p>
+        </motion.div>
+        <motion.div
+          variants={summaryCardVariants}
+          whileHover={{ y: -2, scale: 1.01 }}
+          className="p-5 bg-slate-900/80 border border-slate-800 rounded-2xl cursor-pointer transition-all"
+        >
           <p className="text-sm text-slate-400 font-medium">Net Cashflow</p>
           <p className={`text-3xl font-extrabold mt-1 ${netCashflow >= 0 ? 'text-indigo-400' : 'text-rose-500'}`}>
-            ${netCashflow.toLocaleString()}
+            $<AnimatedNumber value={netCashflow} />
           </p>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* Add Transaction Form */}
       <form onSubmit={handleAddTransaction} className="p-5 bg-slate-900/60 border border-slate-800/80 rounded-2xl space-y-4">
@@ -103,34 +164,43 @@ export function MoneyHub({ onSuccess }: MoneyHubProps) {
             <option value="income">Income</option>
             <option value="expense">Expense</option>
           </select>
-          <button
+          <motion.button
             type="submit"
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
             className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl px-4 py-2 text-sm transition"
           >
             Save Record
-          </button>
+          </motion.button>
         </div>
       </form>
 
       {/* Recent Activity List */}
       <div className="p-5 bg-slate-900/60 border border-slate-800/80 rounded-2xl space-y-3">
         <h3 className="text-lg font-bold text-white">Recent Activity</h3>
-        <div className="space-y-2">
+        <motion.div
+          className="space-y-2"
+          variants={transactionVariants}
+          initial="hidden"
+          animate="visible"
+        >
           {transactions.map((tx) => (
-            <div
+            <motion.div
               key={tx.id}
-              className="flex items-center justify-between p-3 bg-slate-800/30 border border-slate-800/50 rounded-xl"
+              variants={transactionItemVariants}
+              whileHover={{ x: 4 }}
+              className="flex items-center justify-between p-3 bg-slate-800/30 border border-slate-800/50 rounded-xl transition-all"
             >
               <div>
                 <p className="font-medium text-sm text-slate-100">{tx.title}</p>
                 <p className="text-xs text-slate-400">{tx.category} • {tx.date}</p>
               </div>
               <span className={`font-bold text-sm ${tx.type === 'income' ? 'text-emerald-400' : 'text-rose-400'}`}>
-                {tx.type === 'income' ? '+' : '-'}${tx.amount.toLocaleString()}
+                {tx.type === 'income' ? '+' : '-'}$<AnimatedNumber value={tx.amount} />
               </span>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </div>
   );

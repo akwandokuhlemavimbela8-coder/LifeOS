@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
 interface Milestone {
@@ -91,6 +92,46 @@ export function Goals({ onSuccess }: GoalsProps) {
     onSuccess('New goal added!');
   };
 
+  const goalsContainerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.05,
+      },
+    },
+  };
+
+  const goalCardVariants = {
+    hidden: { opacity: 0, y: 15 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.4, ease: 'easeOut' },
+    },
+  };
+
+  const milestoneVariants = {
+    hidden: { opacity: 0, y: 15 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        staggerChildren: 0.06,
+      },
+    },
+  };
+
+  const milestoneItemVariants = {
+    hidden: { opacity: 0, x: -10 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.3, ease: 'easeOut' },
+    },
+  };
+
   return (
     <div className="space-y-6">
       {/* Create New Goal Form */}
@@ -115,56 +156,89 @@ export function Goals({ onSuccess }: GoalsProps) {
             <option value="career">Career</option>
             <option value="mindset">Mindset</option>
           </select>
-          <button
+          <motion.button
             type="submit"
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
             className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl px-4 py-2 text-sm transition"
           >
             + Add Goal
-          </button>
+          </motion.button>
         </div>
       </form>
 
       {/* Goal Cards */}
-      <div className="space-y-4">
+      <motion.div
+        className="space-y-4"
+        variants={goalsContainerVariants}
+        initial="hidden"
+        animate="visible"
+      >
         {goals.map((goal) => (
-          <div key={goal.id} className="p-5 bg-slate-900/60 border border-slate-800/80 rounded-2xl space-y-3">
+          <motion.div
+            key={goal.id}
+            variants={goalCardVariants}
+            whileHover={{ y: -2, scale: 1.01 }}
+            className="p-5 bg-slate-900/60 border border-slate-800/80 rounded-2xl space-y-3 cursor-pointer transition-all"
+          >
             <div className="flex justify-between items-start">
               <div>
                 <span className="text-xs uppercase tracking-wider font-semibold text-indigo-400">{goal.domain}</span>
                 <h4 className="text-lg font-bold text-white">{goal.title}</h4>
                 <p className="text-xs text-slate-400">Target: {goal.targetDate}</p>
               </div>
-              <span className="text-xl font-extrabold text-indigo-400">{goal.progress}%</span>
+              <motion.span
+                className="text-xl font-extrabold text-indigo-400"
+                key={goal.progress}
+                initial={{ scale: 0.8 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.3 }}
+              >
+                {goal.progress}%
+              </motion.span>
             </div>
 
             {/* Progress Bar */}
             <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-              <div
+              <motion.div
                 className="h-full bg-indigo-500 rounded-full transition-all duration-300"
-                style={{ width: `${goal.progress}%` }}
+                initial={{ width: 0 }}
+                animate={{ width: `${goal.progress}%` }}
+                transition={{ duration: 0.5, ease: 'easeOut' }}
               />
             </div>
 
             {/* Milestones Checklist */}
-            <div className="pt-2 space-y-2">
+            <motion.div
+              className="pt-2 space-y-2"
+              variants={milestoneVariants}
+              initial="hidden"
+              animate="visible"
+            >
               {goal.milestones.map((m) => (
-                <div
+                <motion.button
                   key={m.id}
+                  variants={milestoneItemVariants}
                   onClick={() => toggleMilestone(goal.id, m.id)}
-                  className="flex items-center space-x-3 text-sm cursor-pointer text-slate-300 hover:text-white"
+                  whileHover={{ x: 4 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full flex items-center space-x-3 text-sm cursor-pointer text-slate-300 hover:text-white transition-all text-left"
                 >
-                  <div className={`w-4 h-4 rounded flex items-center justify-center border ${
-                    m.completed ? 'bg-indigo-600 border-indigo-500 text-white' : 'border-slate-600'
-                  }`}>
+                  <motion.div
+                    className={`w-4 h-4 rounded flex items-center justify-center border flex-shrink-0 ${
+                      m.completed ? 'bg-indigo-600 border-indigo-500 text-white' : 'border-slate-600'
+                    }`}
+                    animate={m.completed ? { scale: [1, 1.2, 1] } : {}}
+                  >
                     {m.completed && '✓'}
-                  </div>
+                  </motion.div>
                   <span className={m.completed ? 'line-through text-slate-500' : ''}>{m.title}</span>
-                </div>
+                </motion.button>
               ))}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 }

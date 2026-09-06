@@ -12,38 +12,67 @@ export function DayPlanner() {
     setTasks(tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.08,
+        delayChildren: 0.05,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 15 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.3, ease: 'easeOut' },
+    },
+  };
+
   return (
     <div className="p-6 bg-slate-900/60 border border-slate-800/80 rounded-2xl space-y-4">
       <h3 className="text-lg font-bold text-white">Today's Execution</h3>
       
-      <div className="space-y-2">
+      <motion.div
+        className="space-y-2"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
         {tasks.map((task) => (
-          <motion.div
+          <motion.button
             key={task.id}
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
+            variants={itemVariants}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => toggleTask(task.id)}
-            className={`p-4 rounded-xl border flex items-center justify-between cursor-pointer transition-colors ${
+            className={`w-full p-4 rounded-xl border flex items-center justify-between cursor-pointer transition-colors ${
               task.completed 
                 ? 'bg-slate-900/30 border-slate-800/50 text-slate-500 line-through' 
                 : 'bg-slate-800/40 border-slate-700/60 text-slate-100'
             }`}
           >
             <div className="flex items-center space-x-3">
-              <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition ${
-                task.completed ? 'bg-indigo-600 border-indigo-500 text-white' : 'border-slate-600'
-              }`}>
+              <motion.div
+                className={`w-5 h-5 rounded-md border flex items-center justify-center transition ${
+                  task.completed ? 'bg-indigo-600 border-indigo-500 text-white' : 'border-slate-600'
+                }`}
+                animate={task.completed ? { scale: [1, 1.2, 1] } : {}}
+              >
                 {task.completed && '✓'}
-              </div>
+              </motion.div>
               <span className="font-medium text-sm">{task.title}</span>
             </div>
             
             <span className="text-xs px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700/80 text-slate-400">
               {task.category}
             </span>
-          </motion.div>
+          </motion.button>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 }

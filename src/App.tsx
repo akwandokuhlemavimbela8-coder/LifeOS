@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { calculateLifeScore } from './utils/lifeScore';
+import { AnimatedNumber } from './components/AnimatedNumber';
 import { Toast } from './components/Toast';
 import { LifeOrbit } from './components/LifeOrbit';
 import { DayPlanner } from './components/DayPlanner';
@@ -56,9 +57,11 @@ export default function App() {
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
-              <button
+              <motion.button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
                 className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 ${
                   isActive
                     ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
@@ -66,16 +69,20 @@ export default function App() {
                 }`}
               >
                 {tab.label}
-              </button>
+              </motion.button>
             );
           })}
         </nav>
 
         {/* Overall Score Badge */}
         <div className="flex items-center space-x-3">
-          <div className="bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 px-3 py-1 rounded-full text-xs font-bold tracking-wider">
-            SCORE: {overallLifeScore}
-          </div>
+          <motion.div
+            className="bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 px-3 py-1 rounded-full text-xs font-bold tracking-wider"
+            whileHover={{ scale: 1.05 }}
+            key={overallLifeScore}
+          >
+            SCORE: <AnimatedNumber value={overallLifeScore} />
+          </motion.div>
         </div>
       </header>
 

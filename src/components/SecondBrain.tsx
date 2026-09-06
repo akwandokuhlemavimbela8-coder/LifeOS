@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
 interface Note {
@@ -71,6 +72,26 @@ export function SecondBrain({ onSuccess }: SecondBrainProps) {
       n.tags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
+  const notesContainerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.08,
+        delayChildren: 0.05,
+      },
+    },
+  };
+
+  const noteCardVariants = {
+    hidden: { opacity: 0, y: 15 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.4, ease: 'easeOut' },
+    },
+  };
+
   return (
     <div className="space-y-6">
       {/* Search Bar & Create Form */}
@@ -123,20 +144,32 @@ export function SecondBrain({ onSuccess }: SecondBrainProps) {
               onChange={(e) => setNewTags(e.target.value)}
               className="w-full sm:w-2/3 bg-slate-800/80 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
             />
-            <button
+            <motion.button
               type="submit"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
               className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl px-5 py-2 text-sm transition"
             >
               Save Note
-            </button>
+            </motion.button>
           </div>
         </form>
       </div>
 
       {/* Notes Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <motion.div
+        className="grid grid-cols-1 md:grid-cols-2 gap-4"
+        variants={notesContainerVariants}
+        initial="hidden"
+        animate="visible"
+      >
         {filteredNotes.map((note) => (
-          <div key={note.id} className="p-5 bg-slate-900/60 border border-slate-800/80 rounded-2xl space-y-3 flex flex-col justify-between">
+          <motion.div
+            key={note.id}
+            variants={noteCardVariants}
+            whileHover={{ y: -2, scale: 1.01 }}
+            className="p-5 bg-slate-900/60 border border-slate-800/80 rounded-2xl space-y-3 flex flex-col justify-between cursor-pointer transition-all"
+          >
             <div>
               <div className="flex justify-between items-start mb-2">
                 <span className="text-xs uppercase font-semibold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-md border border-indigo-500/20">
@@ -148,16 +181,21 @@ export function SecondBrain({ onSuccess }: SecondBrainProps) {
               <p className="text-sm text-slate-300 mt-2 leading-relaxed">{note.content}</p>
             </div>
 
-            <div className="flex flex-wrap gap-1.5 pt-2">
+            <motion.div
+              className="flex flex-wrap gap-1.5 pt-2"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
               {note.tags.map((tag) => (
                 <span key={tag} className="text-xs text-slate-400 bg-slate-800/60 px-2 py-0.5 rounded-md border border-slate-700/50">
                   #{tag}
                 </span>
               ))}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 }
