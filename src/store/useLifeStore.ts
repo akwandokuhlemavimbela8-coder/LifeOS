@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { playRewardSound } from '@/utils/sound';
 
 export interface Task {
   id: string;
@@ -21,7 +22,6 @@ interface LifeOSState {
   tasks: Task[];
   habits: Habit[];
   
-  // Actions
   addTask: (title: string, xpValue?: number) => void;
   toggleTask: (id: string) => void;
   toggleHabit: (id: string) => void;
@@ -29,7 +29,7 @@ interface LifeOSState {
 
 export const useLifeStore = create<LifeOSState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       xp: 0,
       level: 1,
       tasks: [
@@ -51,12 +51,7 @@ export const useLifeStore = create<LifeOSState>()(
           const updatedTasks = state.tasks.map((task) => {
             if (task.id === id) {
               const newlyCompleted = !task.completed;
-              const xpGain = newlyCompleted ? task.xpValue : -task.xpValue;
-              
-              // Calculate new XP & Level
-              const newXp = Math.max(0, state.xp + xpGain);
-              const newLevel = Math.floor(newXp / 200) + 1;
-
+              if (newlyCompleted) playRewardSound();
               return { ...task, completed: newlyCompleted };
             }
             return task;
@@ -75,6 +70,7 @@ export const useLifeStore = create<LifeOSState>()(
           habits: state.habits.map((habit) => {
             if (habit.id === id) {
               const isDone = !habit.completedToday;
+              if (isDone) playRewardSound();
               return {
                 ...habit,
                 completedToday: isDone,
