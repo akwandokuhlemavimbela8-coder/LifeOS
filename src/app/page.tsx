@@ -1,9 +1,17 @@
 import Dashboard from '@/components/Dashboard';
+import FocusTimer from '@/components/FocusTimer';
+import CommandPalette from '@/components/CommandPalette';
+import Navbar from '@/components/Navbar';
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-slate-950">
-      <Dashboard />
+    <main className="min-h-screen bg-slate-950 text-slate-100 pb-12">
+      <Navbar />
+      <CommandPalette />
+      <div className="max-w-4xl mx-auto px-6 pt-8 space-y-8">
+        <FocusTimer />
+        <Dashboard />
+      </div>
     </main>
   );
 }
