@@ -6,33 +6,45 @@ import { Dashboard } from './components/Dashboard';
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
-  const [session, setSession] = useState<any>(null);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    // 1. Fetch current auth session on launch
+    // Check initial active session on app boot
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      // Give the loader a brief display duration for visual smooth boot
-      setTimeout(() => setIsLoading(false), 1500);
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email,
+          name: session.user.user_metadata?.full_name,
+        });
+      }
+      setIsLoading(false);
     });
 
-    // 2. Listen for auth changes (login, logout, sign up)
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
+    // Listen for auth state changes (login, logout, token refresh)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email,
+          name: session.user.user_metadata?.full_name,
+        });
+      } else {
+        setUser(null);
+      }
+      setIsLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
   if (isLoading) {
-    return <LoadingScreen customImageUrl="/custom-loading-bg.jpg" message="Loading your LifeOS space..." />;
+    return <LoadingScreen customImageUrl="/custom-loading-bg.jpg" message="Authenticating session..." />;
   }
 
-  if (!session) {
-    return <AuthScreen />;
+  if (!user) {
+    return <AuthScreen onAuthSuccess={(userData) => setUser(userData)} />;
   }
 
-  return <Dashboard user={session.user} />;
+  return <Dashboard user={user} />;
 }
