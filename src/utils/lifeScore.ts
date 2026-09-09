@@ -1,10 +1,5 @@
-export interface Domain {
-  name: string;
-  score: number;
-}
-
-export function calculateLifeScore(domains: Domain[]): number {
-  if (!domains.length) return 0;
-  const total = domains.reduce((acc, curr) => acc + curr.score, 0);
-  return Math.round(total / domains.length);
+export function calculateLifeScore(domains: { name: string; score: number }[]): number {
+  if (domains.length === 0) return 0;
+  const sum = domains.reduce((acc, domain) => acc + domain.score, 0);
+  return Math.round(sum / domains.length);
 }
