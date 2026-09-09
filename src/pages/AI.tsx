@@ -1,8 +1,7 @@
-'use client';
-
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Loader, MessageCircle, Zap } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Send, Loader, MessageCircle, Zap, ArrowLeft } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -12,6 +11,7 @@ interface Message {
 }
 
 export default function AI() {
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -50,6 +50,9 @@ export default function AI() {
     setError(null);
     setIsLoading(true);
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -63,13 +66,18 @@ export default function AI() {
           })),
           userMessage: input,
         }),
+        signal: controller.signal,
       });
 
       if (!response.ok) {
-        throw new Error(`API error: ${response.statusText}`);
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
+
+      if (!data.content || typeof data.content !== 'string') {
+        throw new Error('Invalid response from server');
+      }
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -80,10 +88,20 @@ export default function AI() {
 
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to get response';
+      let errorMessage = 'Failed to get response';
+      if (err instanceof Error) {
+        if (err.name === 'AbortError') {
+          errorMessage = 'Request timed out (30s). Please try again.';
+        } else {
+          errorMessage = err.message;
+        }
+      }
       setError(errorMessage);
       console.error('Chat error:', err);
+      // Remove the user message on error
+      setMessages((prev) => prev.slice(0, -1));
     } finally {
+      clearTimeout(timeoutId);
       setIsLoading(false);
       inputRef.current?.focus();
     }
@@ -93,13 +111,22 @@ export default function AI() {
     <div className="flex flex-col h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100">
       {/* Header */}
       <header className="sticky top-0 z-40 backdrop-blur-md bg-slate-900/80 border-b border-slate-800/80 px-6 py-4">
-        <div className="max-w-4xl mx-auto flex items-center gap-3">
-          <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl shadow-lg shadow-indigo-500/20">
-            <Zap className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">AI Assistant</h1>
-            <p className="text-xs text-slate-400 mt-1">Powered by Google Gemini</p>
+        <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
+          <button
+            onClick={() => navigate('/')}
+            className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
+            title="Back to Dashboard"
+          >
+            <ArrowLeft className="w-5 h-5 text-slate-400" />
+          </button>
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl shadow-lg shadow-indigo-500/20">
+              <Zap className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white tracking-tight">AI Assistant</h1>
+              <p className="text-xs text-slate-400 mt-1">Powered by Google Gemini</p>
+            </div>
           </div>
         </div>
       </header>
@@ -180,14 +207,14 @@ export default function AI() {
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask me anything about productivity, goals, finances, or life coaching..."
               disabled={isLoading}
-              className="flex-1 bg-slate-800/60 border border-slate-700/50 rounded-2xl px-6 py-4 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-slate-800/60 border border-slate-700/50 rounded-2xl px-6 py-4 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             />
             <motion.button
               type="submit"
               disabled={isLoading || !input.trim()}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold rounded-2xl px-6 py-4 flex items-center gap-2 transition-all shadow-lg shadow-indigo-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold rounded-2xl px-6 py-4 flex items-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-600/20"
             >
               {isLoading ? (
                 <Loader className="w-5 h-5 animate-spin" />
