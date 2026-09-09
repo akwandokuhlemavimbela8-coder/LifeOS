@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { calculateLifeScore } from './utils/lifeScore';
 import { AnimatedNumber } from './components/AnimatedNumber';
@@ -9,8 +10,11 @@ import { DayPlanner } from './components/DayPlanner';
 import { MoneyHub } from './components/MoneyHub';
 import { Goals } from './components/Goals';
 import { SecondBrain } from './components/SecondBrain';
+import AI from './pages/AI';
+import { Zap } from 'lucide-react';
 
-export default function App() {
+function DashboardLayout() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [toastMessage, setToastMessage] = useState('');
   const [showToast, setShowToast] = useState(false);
@@ -74,7 +78,7 @@ export default function App() {
           })}
         </nav>
 
-        {/* Overall Score Badge */}
+        {/* Right side: Overall Score Badge + AI Button */}
         <div className="flex items-center space-x-3">
           <motion.div
             className="bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 px-3 py-1 rounded-full text-xs font-bold tracking-wider"
@@ -83,6 +87,17 @@ export default function App() {
           >
             SCORE: <AnimatedNumber value={overallLifeScore} />
           </motion.div>
+
+          {/* AI Assistant Button */}
+          <motion.button
+            onClick={() => navigate('/ai')}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-all shadow-lg shadow-indigo-600/20"
+          >
+            <Zap className="w-4 h-4" />
+            <span className="hidden sm:inline">AI</span>
+          </motion.button>
         </div>
       </header>
 
@@ -117,5 +132,16 @@ export default function App() {
 
       <Toast message={toastMessage} show={showToast} />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<DashboardLayout />} />
+        <Route path="/ai" element={<AI />} />
+      </Routes>
+    </Router>
   );
 }
